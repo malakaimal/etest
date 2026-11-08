@@ -32,6 +32,11 @@ create table if not exists public.questions (
   position integer not null,
   created_at timestamptz not null default now()
 );
+-- Correct answers are stored separately so students cannot read answer keys.
+create table if not exists public.answer_keys (
+  question_id uuid primary key references public.questions(id) on delete cascade,
+  correct_option integer
+);
 create table if not exists public.attempts (
   id uuid primary key default gen_random_uuid(),
   test_id uuid not null references public.tests(id),
@@ -89,15 +94,17 @@ as $$ select exists(select 1 from public.profiles where id = auth.uid() and role
 alter table public.profiles enable row level security;
 alter table public.tests enable row level security;
 alter table public.questions enable row level security;
+alter table public.answer_keys enable row level security;
 alter table public.attempts enable row level security;
 alter table public.answers enable row level security;
 alter table public.results enable row level security;
 alter table public.incidents enable row level security;
 
 -- Least-privilege grants. RLS policies below further restrict rows.
-revoke all on public.profiles,public.tests,public.questions,public.attempts,public.answers,public.results,public.incidents from anon;
+revoke all on public.profiles,public.tests,public.questions,public.answer_keys,public.attempts,public.answers,public.results,public.incidents from anon, authenticated;
 grant select,update on public.profiles to authenticated;
 grant select,insert,update,delete on public.tests,public.questions to authenticated;
+grant select,insert,update,delete on public.answer_keys to authenticated;
 grant select,insert,update on public.attempts,public.answers to authenticated;
 grant select,insert,update on public.results,public.incidents to authenticated;
 
@@ -114,6 +121,8 @@ using (public.is_admin()) with check (public.is_admin());
 create policy "approved students read published questions" on public.questions for select to authenticated
 using (public.is_admin() or exists(select 1 from public.tests t join public.profiles p on p.id=auth.uid() where t.id=test_id and t.status='published' and p.status='approved'));
 create policy "admins manage questions" on public.questions for all to authenticated
+using (public.is_admin()) with check (public.is_admin());
+create policy "admins manage answer keys" on public.answer_keys for all to authenticated
 using (public.is_admin()) with check (public.is_admin());
 
 create policy "student own attempts or admin" on public.attempts for select to authenticated
