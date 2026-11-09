@@ -45,7 +45,7 @@ const profileById=new Map((profiles||[]).map(p=>[p.id,p]));
 const testById=new Map((tests||[]).map(t=>[t.id,t]));
 const answersByAttempt=new Map();
 (aRes.data||[]).forEach(a=>{if(!answersByAttempt.has(a.attempt_id))answersByAttempt.set(a.attempt_id,[]);answersByAttempt.get(a.attempt_id).push(a)});
-const results=submitted.map(a=>{
+const exportRows=[];const results=submitted.map(a=>{
 const student=profileById.get(a.student_id)||{},test=testById.get(a.test_id)||{};
 const qs=(qRes.data||[]).filter(q=>q.test_id===a.test_id);
 const hasWritten=qs.some(q=>q.question_type!=="mcq");
@@ -54,10 +54,34 @@ const ans=answersByAttempt.get(a.id)||[];
 ans.forEach(answer=>{const q=qById.get(answer.question_id),key=keyById.get(answer.question_id);if(q&&q.question_type==="mcq"&&key&&Number(answer.selected_option)===Number(key.correct_option))marks+=Number(q.marks||0)});
 const total=Number(test.total_marks||qs.reduce((n,q)=>n+Number(q.marks||0),0));
 const pct=total?((marks/total)*100).toFixed(1):"0.0";
-return '<tr><td>'+esc(student.full_name||"Student")+'</td><td>'+esc(student.registration_id||"—")+'</td><td>'+esc(test.title||"Test")+'</td><td><b>'+marks+' / '+total+'</b>'+(hasWritten?'<small class="muted"> MCQ marks only</small>':'')+'</td><td>'+pct+'%'+(hasWritten?'<small class="muted"> provisional</small>':'')+'</td><td><span class="pill">'+(hasWritten?"Written answers need marking":"Auto-marked")+'</span></td><td>'+esc(a.submitted_at?new Date(a.submitted_at).toLocaleString():"—")+'</td></tr>';
+exportRows.push({"Student":student.full_name||"Student","Registration ID":student.registration_id||"—","Test":test.title||"Test","Marks":marks,"Total Marks":total,"Percentage":pct+"%","Evaluation":hasWritten?"Written answers need marking":"Auto-marked","Submitted":a.submitted_at?new Date(a.submitted_at).toLocaleString():"—"});return '<tr><td>'+esc(student.full_name||"Student")+'</td><td>'+esc(student.registration_id||"—")+'</td><td>'+esc(test.title||"Test")+'</td><td><b>'+marks+' / '+total+'</b>'+(hasWritten?'<small class="muted"> MCQ marks only</small>':'')+'</td><td>'+pct+'%'+(hasWritten?'<small class="muted"> provisional</small>':'')+'</td><td><span class="pill">'+(hasWritten?"Written answers need marking":"Auto-marked")+'</span></td><td>'+esc(a.submitted_at?new Date(a.submitted_at).toLocaleString():"—")+'</td></tr>';
 });
 $("#admin-results").innerHTML=results.join("")||'<tr><td colspan="7">No submitted results yet.</td></tr>';
+window.adminResultRows=exportRows;
 }
+const exportExcelButton=$("#download-results-excel");
+if(exportExcelButton)exportExcelButton.addEventListener("click",()=>{
+ const rows=window.adminResultRows||[];
+ if(!rows.length){alert("There are no submitted results to export yet.");return}
+ if(!window.XLSX){alert("Excel export library did not load. Check your internet connection and refresh the page.");return}
+ const sheet=XLSX.utils.json_to_sheet(rows);
+ sheet["!cols"]=[{wch:24},{wch:20},{wch:28},{wch:12},{wch:14},{wch:14},{wch:28},{wch:24}];
+ const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,sheet,"Student Results");
+ XLSX.writeFile(book,"ILM-Student-Results-"+new Date().toISOString().slice(0,10)+".xlsx");
+});
+const exportPdfButton=$("#download-results-pdf");
+if(exportPdfButton)exportPdfButton.addEventListener("click",()=>{
+ const rows=window.adminResultRows||[];
+ if(!rows.length){alert("There are no submitted results to export yet.");return}
+ const JsPDF=window.jspdf?.jsPDF;
+ if(!JsPDF){alert("PDF export library did not load. Check your internet connection and refresh the page.");return}
+ const doc=new JsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+ doc.setFontSize(17);doc.text("ILM The Contest Center",14,15);
+ doc.setFontSize(11);doc.text("ETest Service | Student Results Report",14,22);
+ doc.setFontSize(9);doc.text("Generated: "+new Date().toLocaleString(),14,28);
+ doc.autoTable({startY:34,head:[["Student","Registration ID","Test","Marks","Percentage","Evaluation","Submitted"]],body:rows.map(r=>[r.Student,r["Registration ID"],r.Test,r.Marks+" / "+r["Total Marks"],r.Percentage,r.Evaluation,r.Submitted]),styles:{fontSize:7,cellPadding:2,overflow:"linebreak"},headStyles:{fillColor:[16,43,85]},alternateRowStyles:{fillColor:[243,247,252]},margin:{left:10,right:10}});
+ doc.save("ILM-Student-Results-"+new Date().toISOString().slice(0,10)+".pdf");
+});
 const questionBank=[];let editingQuestion=-1;
 const questionType=$("#question-type"),mcqFields=$("#mcq-fields"),questionJson=$("#questions-json");
 function syncQuestionBuilder(){if(!questionJson)return;questionJson.value=JSON.stringify(questionBank);const count=$("#question-count");if(count)count.textContent=questionBank.length+" QUESTION"+(questionBank.length===1?"":"S");const list=$("#question-list");if(!list)return;if(!questionBank.length){list.innerHTML='<div class="empty">No questions added yet. Start with Question 1.</div>';return}list.innerHTML=questionBank.map((q,i)=>'<article class="question-row"><div class="question-row-top"><b>Question '+(i+1)+'</b><span class="pill">'+q.marks+' MARK'+(q.marks===1?'':'S')+'</span></div><p>'+formatMath(q.prompt)+'</p><small class="muted">'+(q.type==='mcq'?'Multiple choice':'Short/long answer')+'</small><div class="question-row-actions"><button type="button" class="btn light" data-edit-question="'+i+'">Edit</button><button type="button" class="btn light" data-delete-question="'+i+'">Remove</button></div></article>').join('');list.querySelectorAll('[data-edit-question]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.editQuestion),q=questionBank[i];const marker=q.prompt.indexOf(" \\(");const hasEquation=marker>=0&&q.prompt.endsWith("\\)");$("#question-prompt").value=hasEquation?q.prompt.slice(0,marker):q.prompt;const equation=$("#question-equation");if(equation)equation.value=hasEquation?q.prompt.slice(marker+3,-2):"";questionType.value=q.type;$("#question-marks").value=q.marks;if(q.type==="mcq"){(q.options||[]).forEach((v,j)=>$("#option-"+j).value=v);$("#correct-option").value=q.correct_option??0}mcqFields.hidden=q.type!=="mcq";editingQuestion=i;$("#add-question").textContent="Update question";msg("question-message","Editing Question "+(i+1));});list.querySelectorAll('[data-delete-question]').forEach(b=>b.onclick=()=>{questionBank.splice(Number(b.dataset.deleteQuestion),1);editingQuestion=-1;$("#add-question").textContent="+ Add question";syncQuestionBuilder()})}
