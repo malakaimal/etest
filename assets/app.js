@@ -23,7 +23,7 @@ async function loadAdmin(){
 const [{data:tests,error:testError},{data:profiles,error:profileError},{data:attempts,error:attemptError}]=await Promise.all([
 db.from("tests").select("*").order("created_at",{ascending:false}),
 db.from("profiles").select("*").order("created_at",{ascending:false}),
-db.from("attempts").select("id,status,submitted_at,student_id,test_id").order("created_at",{ascending:false})
+db.from("attempts").select("id,status,submitted_at,student_id,test_id").order("submitted_at",{ascending:false,nullsFirst:false})
 ]);
 if(attemptError){$("#admin-attempts").innerHTML='<tr><td colspan="4">Could not load submissions: '+esc(attemptError.message)+'</td></tr>';$("#admin-results").innerHTML='<tr><td colspan="7">Results are unavailable until submission access is fixed.</td></tr>';return}
 if(testError)$("#admin-tests").innerHTML='<tr><td colspan="6">Could not load tests: '+esc(testError.message)+'</td></tr>';
