@@ -161,3 +161,8 @@ math-field{display:block;width:100%;min-height:64px;padding:14px;border:1px soli
 .btn.export-pdf:hover{background:linear-gradient(135deg,#f0d58e,#d8ad52);box-shadow:0 10px 22px rgba(174,132,48,.2)}
 .btn.export-excel span,.btn.export-pdf span{font-size:17px;line-height:1}
 @media(max-width:560px){.results-heading{align-items:stretch}.export-actions{width:100%}.export-actions .btn{flex:1}}
+
+
+/* Official ILM student ID chip */
+.student-id-chip{display:inline-flex;align-items:center;gap:12px;margin-top:16px;padding:10px 14px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(255,255,255,.1);color:#d9e8f7;font-size:10px;font-weight:800;letter-spacing:.13em}
+.student-id-chip strong{color:#f1d58f;font:800 14px Manrope;letter-spacing:.04em}
