@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Add Student | ETest Admin</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/config.js"></script>
+<script defer src="assets/app.js"></script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="admin.html"><span class="brand-mark">E</span><span>ETEST <small>ADMIN CONSOLE</small></span></a><button class="btn light" data-logout>Sign out</button></header>
+<main class="app-shell" id="add-student-page">
+<nav class="app-nav"><b>Administrator: <span id="admin-name">Admin</span></b><div class="nav-links"><a href="admin.html">Dashboard</a><a class="active" href="add-student.html">Add student</a><a href="create-test.html">Create tests</a><a href="student.html">Student view</a></div></nav>
+<section class="welcome"><div><span class="eyebrow gold-text">STUDENT MANAGEMENT</span><h1>Add a student account</h1><p>Create the student's Supabase login and profile in one step.</p></div><div class="brand-mark">＋</div></section>
+<div class="panel" style="max-width:760px;margin:24px auto">
+<h2>Student details</h2>
+<p class="muted">Enter a unique email and registration ID. The student will be approved automatically and can sign in after you share the login details.</p>
+<form id="add-student-form" class="stack">
+<div class="form-grid">
+<label>Student full name<input name="full_name" type="text" autocomplete="name" placeholder="Enter student's full name" required maxlength="100"></label>
+<label>Registration ID<input name="registration_id" type="text" placeholder="e.g. ETEST-001" required maxlength="40"></label>
+<label class="wide">Student email<input name="email" type="email" autocomplete="off" placeholder="student@example.com" required maxlength="254"></label>
+<label class="wide">Temporary password<input name="password" type="password" autocomplete="new-password" placeholder="Create a temporary password" required minlength="8"></label>
+</div>
+<p class="muted">Use a temporary password and ask the student to change it after signing in. Do not use your own password.</p>
+<button class="btn primary full" type="submit">Create student account →</button>
+<p id="add-student-message" class="form-message" role="status" aria-live="polite"></p>
+</form>
+<section id="student-created" class="notice hidden" style="margin-top:18px">
+<strong>Student account created successfully.</strong>
+<p id="created-student-details"></p>
+<p class="muted">Share these credentials with the student privately. The password is not emailed automatically.</p>
+<button class="btn gold" id="copy-student-credentials" type="button">Copy login details</button>
+</section>
+</div>
+</main>
+<footer class="site-foot">ETest Service · Administrator workspace</footer>
+</body></html>
