@@ -102,3 +102,20 @@ tbody tr:hover{background:#f9fbfe}
  .exam-head{padding:16px}
  .timer{font-size:22px}
 }
+
+/* Individual question builder */
+.question-builder{margin-top:12px;padding:22px;border:1px solid var(--line);border-radius:17px;background:#f9fbfe}
+.builder-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:18px}
+.builder-heading h3{font:800 19px Manrope;color:#153252;margin:7px 0}
+.builder-heading p{margin:0}
+.question-editor{display:grid;gap:15px;padding:19px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.question-editor textarea{resize:vertical}
+.builder-actions,.question-row-actions{display:flex;gap:9px;flex-wrap:wrap}
+.question-list{display:grid;gap:10px;margin-top:15px}
+.question-row{padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:13px}
+.question-row-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.question-row p{font-weight:700;color:#18385e;margin:10px 0 6px;overflow-wrap:anywhere}
+.question-row-actions{margin-top:12px}
+.question-row-actions .btn{min-height:34px;padding:8px 12px;font-size:11px}
+.publish-toggle{display:flex;align-items:center;gap:10px}
+@media(max-width:560px){.question-builder{padding:14px}.builder-heading{flex-direction:column}.question-editor{padding:14px}}
