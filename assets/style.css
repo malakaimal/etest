@@ -144,3 +144,6 @@ tbody tr:hover{background:#f9fbfe}
 #start-exam:disabled{opacity:.48;cursor:not-allowed;transform:none}
 .back-link{display:inline-block;margin-top:16px;color:#1768b2;font-size:12px;font-weight:700}
 @media(max-width:600px){.permission-grid{grid-template-columns:1fr}.pretest-facts{gap:7px}.pretest-facts span{flex:1;min-width:90px;padding:10px}}
+
+/* Visual equation editor */
+math-field{display:block;width:100%;min-height:64px;padding:14px;border:1px solid #dce5ef;border-radius:11px;background:#fff;color:#14243a;font-size:1.2rem;--caret-color:#1768b2;--selection-background-color:#dceeff;--contains-highlight-background-color:#fff3cf}math-field:focus-within{border-color:#4b94ce;box-shadow:0 0 0 4px rgba(23,104,178,.1)}math-span{font-size:1.05em;white-space:normal}
