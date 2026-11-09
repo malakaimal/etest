@@ -147,3 +147,17 @@ tbody tr:hover{background:#f9fbfe}
 
 /* Visual equation editor */
 math-field{display:block;width:100%;min-height:64px;padding:14px;border:1px solid #dce5ef;border-radius:11px;background:#fff;color:#14243a;font-size:1.2rem;--caret-color:#1768b2;--selection-background-color:#dceeff;--contains-highlight-background-color:#fff3cf}math-field:focus-within{border-color:#4b94ce;box-shadow:0 0 0 4px rgba(23,104,178,.1)}math-span{font-size:1.05em;white-space:normal}
+
+
+/* Clear, prominent student-results export controls */
+.results-heading{align-items:center;gap:16px;flex-wrap:wrap}
+.results-heading>div:first-child{display:grid;gap:5px}
+.results-heading>div:first-child .muted{margin:0}
+.export-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn.export-excel,.btn.export-pdf{min-height:46px;padding:12px 18px;border-radius:12px;font-size:13px;letter-spacing:.01em;box-shadow:0 7px 18px rgba(15,42,72,.12)}
+.btn.export-excel{background:linear-gradient(135deg,#16845b,#0d6848);color:#fff}
+.btn.export-excel:hover{background:linear-gradient(135deg,#1b986a,#0d6848);box-shadow:0 10px 22px rgba(13,104,72,.22)}
+.btn.export-pdf{background:linear-gradient(135deg,#e8c879,#d3a94b);color:#26364a}
+.btn.export-pdf:hover{background:linear-gradient(135deg,#f0d58e,#d8ad52);box-shadow:0 10px 22px rgba(174,132,48,.2)}
+.btn.export-excel span,.btn.export-pdf span{font-size:17px;line-height:1}
+@media(max-width:560px){.results-heading{align-items:stretch}.export-actions{width:100%}.export-actions .btn{flex:1}}
