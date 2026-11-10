@@ -58,8 +58,10 @@ async function startExam(test,userId,mediaStreams={},existingAttempt=null,restor
     if(done||dirty.size===0)return;
     if(saveInFlight){await saveInFlight; if(dirty.size===0)return}
     const ids=[...dirty];
+    const sentValues=new Map();
     const rows=ids.filter(id=>answers[id]!==undefined).map(question_id=>{
       const answer=answers[question_id];
+      sentValues.set(question_id,answer);
       return {
         attempt_id:attempt.id,
         question_id,
@@ -72,7 +74,7 @@ async function startExam(test,userId,mediaStreams={},existingAttempt=null,restor
     saveInFlight=(async()=>{
       const {error}=await db.from("answers").upsert(rows,{onConflict:"attempt_id,question_id"});
       if(error)throw error;
-      ids.forEach(id=>dirty.delete(id));
+      ids.forEach(id=>{if(answers[id]===sentValues.get(id))dirty.delete(id)});
       setSaveStatus("All answers saved · "+new Date().toLocaleTimeString());
     })();
     try{await saveInFlight}
