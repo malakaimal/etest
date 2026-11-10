@@ -180,7 +180,7 @@ const addStudentPage=$("#add-student-page");if(addStudentPage)(async()=>{
    const result=await response.json().catch(()=>({}));
    if(!response.ok)throw new Error(result.error||"Could not create the student account.");
    credentialsText="ETest Student Login\nName: "+payload.full_name+"\nRegistration ID: "+payload.registration_id+"\nEmail: "+payload.email+"\nTemporary password: "+payload.password+"\nLogin: "+location.origin+location.pathname.replace(/[^/]*$/,"")+"index.html";
-   details.textContent="Name: "+payload.full_name+" | Registration ID: "+payload.registration_id+" | Email: "+payload.email+" | Status: Approved";
+   details.textContent="Name: "+payload.full_name+" | Registration ID: "+payload.registration_id+" | Email: "+payload.email+" | Temporary Password: "+payload.password+" | Status: Approved. Share these login details privately.";
    created.classList.remove("hidden");form.reset();msg("add-student-message","Account created and linked with Supabase Authentication and profiles.");
    $("#copy-student-credentials").onclick=async()=>{try{await navigator.clipboard.writeText(credentialsText);msg("add-student-message","Login details copied. Share them privately with the student.");}catch(_){msg("add-student-message","Copy was blocked by the browser. Please copy the details manually.");}};
   }catch(error){msg("add-student-message",error.message||"An unexpected error occurred.");}
