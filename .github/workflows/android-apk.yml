@@ -27,15 +27,21 @@ jobs:
           gradle-version: "8.9"
       - name: Build debug APK
         run: gradle assembleDebug
-      - name: Prepare student download
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ilm-etest.apk
-      - name: Upload APK artifact
+      - name: Prepare and verify APK
+        shell: bash
+        run: |
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          cp "$APK" app/build/outputs/apk/debug/ilm-etest.apk
+          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs app/build/outputs/apk/debug/ilm-etest.apk
+          "$BUILD_TOOLS/aapt" dump badging app/build/outputs/apk/debug/ilm-etest.apk | head -n 5
+      - name: Upload verified APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ILM-ETest-Android-Debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: ILM-ETest-Android-Verified
+          path: app/build/outputs/apk/debug/ilm-etest.apk
           if-no-files-found: error
-      - name: Publish APK download
+      - name: Publish verified APK download
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
