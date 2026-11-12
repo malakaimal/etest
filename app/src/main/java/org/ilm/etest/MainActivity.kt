@@ -138,6 +138,10 @@ class MainActivity : ComponentActivity() {
         switchMonitoringEnabled = true
     }
 
+    fun stopSwitchMonitoring() {
+        switchMonitoringEnabled = false
+    }
+
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         if (switchMonitoringEnabled && !sessionDisqualified) {
@@ -199,7 +203,7 @@ private fun ETestApp(activity: MainActivity) {
             switchCount = activity.appSwitchCount,
             disqualified = activity.sessionDisqualified,
             onStartMonitoring = { activity.startSwitchMonitoring() },
-            onBack = { activity.switchMonitoringEnabled = false; selectedTest = null },
+            onBack = { activity.stopSwitchMonitoring(); selectedTest = null },
             onError = { error = it })
     } else {
         StudentHome(profile!!, tests, error, onRefresh = {
