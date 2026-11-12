@@ -125,6 +125,27 @@ private object ETestApi {
 }
 
 class MainActivity : ComponentActivity() {
+    var switchMonitoringEnabled by mutableStateOf(false)
+        private set
+    var appSwitchCount by mutableIntStateOf(0)
+        private set
+    var sessionDisqualified by mutableStateOf(false)
+        private set
+
+    fun startSwitchMonitoring() {
+        appSwitchCount = 0
+        sessionDisqualified = false
+        switchMonitoringEnabled = true
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (switchMonitoringEnabled && !sessionDisqualified) {
+            appSwitchCount += 1
+            if (appSwitchCount >= 3) sessionDisqualified = true
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -173,7 +194,13 @@ private fun ETestApp(activity: MainActivity) {
             }
         })
     } else if (selectedTest != null) {
-        TestPermissionScreen(activity, selectedTest!!, onBack = { selectedTest = null }, onError = { error = it })
+        TestPermissionScreen(activity, selectedTest!!,
+            monitoring = activity.switchMonitoringEnabled,
+            switchCount = activity.appSwitchCount,
+            disqualified = activity.sessionDisqualified,
+            onStartMonitoring = { activity.startSwitchMonitoring() },
+            onBack = { activity.switchMonitoringEnabled = false; selectedTest = null },
+            onError = { error = it })
     } else {
         StudentHome(profile!!, tests, error, onRefresh = {
             scope.launch { busy = true; try { tests = ETestApi.loadTests(activity); error = "" } catch (e: Exception) { error = e.message ?: "Could not refresh." }; busy = false }
@@ -264,7 +291,11 @@ private fun NoticeCard(title: String, body: String) {
 }
 
 @Composable
-private fun TestPermissionScreen(activity: MainActivity, test: ETest, onBack: () -> Unit, onError: (String) -> Unit) {
+private fun TestPermissionScreen(
+    activity: MainActivity, test: ETest, monitoring: Boolean, switchCount: Int,
+    disqualified: Boolean, onStartMonitoring: () -> Unit,
+    onBack: () -> Unit, onError: (String) -> Unit
+) {
     var cameraGranted by remember { mutableStateOf(ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
     var screenGranted by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
@@ -293,15 +324,23 @@ private fun TestPermissionScreen(activity: MainActivity, test: ETest, onBack: ()
             }
         } else {
             NoticeCard("Standard assessment", "This test is not marked as invigilated. Camera permission will not be requested.")
-            Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Return to tests") }
+
         }
         if (message.isNotBlank()) Text(message, color = Muted, fontSize = 12.sp)
-        if (test.cameraRequired) {
-            Button(onClick = { message = "Permissions are ready. The native question and answer exam flow is the next integration step." }, enabled = ready, modifier = Modifier.fillMaxWidth()) {
-                Text("Continue to assessment")
+        NoticeCard("Test switching policy", "Stay in ILM ETest during your assessment. 1st app switch: warning. 2nd: final warning. 3rd: session disqualification. Calls, Android permission screens and genuine interruptions should be reviewed by an ILM administrator.")
+        if (!monitoring) {
+            Button(onClick = { onStartMonitoring(); message = "App-switch monitoring is now active for this session." }, enabled = ready, modifier = Modifier.fillMaxWidth()) {
+                Text("Start monitored session")
             }
+        } else if (disqualified) {
+            NoticeCard("Session disqualified", "Three app-leave events were detected. This session is locked. Please contact an ILM administrator for review.")
+        } else {
+            NoticeCard(if (switchCount == 0) "Monitoring active" else if (switchCount == 1) "Warning 1 of 2" else "Final warning 2 of 2",
+                if (switchCount == 0) "Keep this app open until your assessment is complete."
+                else if (switchCount == 1) "You left ILM ETest once. Return to the assessment and do not switch apps again."
+                else "You left ILM ETest twice. One more app switch will disqualify this session.")
         }
-        Text("Camera access is limited to this invigilated test session. This app version does not upload or store camera footage.", color = Muted, fontSize = 11.sp)
+        Text("This version detects when Android reports that you leave the app. It does not identify which app or browser tab was opened. Camera preview stays on-device; no camera footage is uploaded or stored.", color = Muted, fontSize = 11.sp)
     }
 }
 
