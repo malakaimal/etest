@@ -301,7 +301,7 @@ private fun TestPermissionScreen(activity: MainActivity, test: ETest, onBack: ()
                 Text("Continue to assessment")
             }
         }
-        Text("Privacy: the app requests camera access only after you open an invigilated test. This build displays a local camera preview; it does not stream or store camera footage.", color = Muted, fontSize = 11.sp)
+        Text("Camera access is limited to this invigilated test session. This app version does not upload or store camera footage.", color = Muted, fontSize = 11.sp)
     }
 }
 
