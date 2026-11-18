@@ -270,12 +270,14 @@ const exportRows=[];const results=submitted.map(a=>{
 const student=profileById.get(a.student_id)||{},test=testById.get(a.test_id)||{};
 const qs=(qRes.data||[]).filter(q=>q.test_id===a.test_id);
 const hasWritten=qs.some(q=>q.question_type!=="mcq");
-let marks=0;
+let marks=0,writtenPending=false;
 const ans=answersByAttempt.get(a.id)||[];
-ans.forEach(answer=>{const q=qById.get(answer.question_id),key=keyById.get(answer.question_id);if(q&&q.question_type==="mcq"&&key&&Number(answer.selected_option)===Number(key.correct_option))marks+=Number(q.marks||0)});
+ans.forEach(answer=>{const q=qById.get(answer.question_id),key=keyById.get(answer.question_id);if(!q)return;if(q.question_type==="mcq"){if(key&&Number(answer.selected_option)===Number(key.correct_option))marks+=Number(q.marks||0)}else if(answer.is_checked&&answer.awarded_marks!==null&&answer.awarded_marks!==undefined){marks+=Number(answer.awarded_marks||0)}else writtenPending=true});
+if(qs.some(q=>q.question_type!=="mcq"&&!ans.some(x=>x.question_id===q.id)))writtenPending=true;
 const total=Number(test.total_marks||qs.reduce((n,q)=>n+Number(q.marks||0),0));
 const pct=total?((marks/total)*100).toFixed(1):"0.0";
-exportRows.push({"Student":student.full_name||"Student","Student ID":student.registration_id||"—","Test":test.title||"Test","Marks":marks,"Total Marks":total,"Percentage":pct+"%","Evaluation":hasWritten?"Written answers need marking":"Auto-marked","Submitted":a.submitted_at?new Date(a.submitted_at).toLocaleString():"—"});return '<tr><td>'+esc(student.full_name||"Student")+'</td><td>'+esc(student.registration_id||"—")+'</td><td>'+esc(test.title||"Test")+'</td><td><b>'+marks+' / '+total+'</b>'+(hasWritten?'<small class="muted"> MCQ marks only</small>':'')+'</td><td>'+pct+'%'+(hasWritten?'<small class="muted"> provisional</small>':'')+'</td><td><span class="pill">'+(hasWritten?"Written answers need marking":"Auto-marked")+'</span></td><td>'+esc(a.submitted_at?new Date(a.submitted_at).toLocaleString():"—")+'</td></tr>';
+const evaluation=writtenPending?"Written answers need marking":(hasWritten?"Final result":"Auto-marked");
+exportRows.push({"Student":student.full_name||"Student","Student ID":student.registration_id||"—","Test":test.title||"Test","Marks":marks,"Total Marks":total,"Percentage":pct+"%","Evaluation":evaluation,"Submitted":a.submitted_at?new Date(a.submitted_at).toLocaleString():"—"});return '<tr><td>'+esc(student.full_name||"Student")+'</td><td>'+esc(student.registration_id||"—")+'</td><td>'+esc(test.title||"Test")+'</td><td><b>'+marks+' / '+total+'</b>'+(writtenPending?'<small class="muted"> provisional</small>':'')+'</td><td>'+pct+'%'+(writtenPending?'<small class="muted"> provisional</small>':'')+'</td><td><span class="pill">'+evaluation+'</span></td><td>'+esc(a.submitted_at?new Date(a.submitted_at).toLocaleString():"—")+'</td></tr>';
 });
 $("#admin-results").innerHTML=results.join("")||'<tr><td colspan="7">No submitted results yet.</td></tr>';
 window.adminResultRows=exportRows;
